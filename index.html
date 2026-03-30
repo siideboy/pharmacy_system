@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PharmaManager Pro | Full POS + Returns + Reports</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1c5d5b">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f5f7fb; padding: 16px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .auth-container { max-width: 400px; margin: 40px auto; background: white; border-radius: 32px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .auth-container h2 { margin-bottom: 20px; color: #1c5d5b; }
+        .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 30px; border: 1px solid #ccc; }
+        .auth-container button { width: 100%; padding: 12px; background: #1c5d5b; color: white; border: none; border-radius: 30px; font-weight: bold; margin-top: 8px; }
+        .auth-container .switch { text-align: center; margin-top: 16px; color: #1c5d5b; cursor: pointer; }
+        .main-app { display: none; }
+        .business-header { background: linear-gradient(135deg, #0f2b2d, #1c5d5b); border-radius: 28px; padding: 20px 24px; color: white; margin-bottom: 24px; }
+        .business-header h1 { font-size: 1.8rem; font-weight: 700; }
+        .business-header p { opacity: 0.9; font-size: 0.9rem; margin-top: 6px; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; background: white; padding: 8px 12px; border-radius: 60px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .tab-btn { background: transparent; border: none; padding: 8px 18px; font-weight: 600; border-radius: 40px; color: #2c5f5d; cursor: pointer; }
+        .tab-btn.active { background: #1c5d5b; color: white; }
+        .panel { display: none; background: white; border-radius: 28px; padding: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .panel.active { display: block; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: #f9fafc; border-radius: 20px; padding: 16px; text-align: center; border: 1px solid #eef2f6; transition: 0.2s; }
+        .stat-card h4 { font-size: 0.8rem; text-transform: uppercase; color: #5f6c7a; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 800; color: #1c5d5b; }
+        .expiry-block, .moved-items { background: #fff9e6; border-radius: 20px; padding: 16px; margin-top: 20px; border-left: 5px solid #f4b942; }
+        .graph-section { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 24px; }
+        .graph-container { flex: 2; min-width: 200px; }
+        .payment-stats { flex: 1; background: #f8fafc; border-radius: 20px; padding: 16px; }
+        .bar-group { margin: 12px 0; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+        .bar { background: #e2e8f0; border-radius: 20px; height: 24px; overflow: hidden; }
+        .bar-fill { background: #1c5d5b; height: 100%; width: 0%; border-radius: 20px; text-align: right; padding-right: 6px; color: white; line-height: 24px; font-size: 0.75rem; }
+        .form-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: flex-end; }
+        .form-group input, .form-group select { flex: 1; min-width: 140px; padding: 12px 16px; border-radius: 28px; border: 1px solid #ced4da; }
+        button { background: #1c5d5b; color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.97); }
+        .btn-secondary { background: #e67e22; }
+        .btn-danger { background: #e74c3c; }
+        table { width: 100%; border-collapse: collapse; overflow-x: auto; display: block; }
+        th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        .cart-item { background: #f8fafc; border-radius: 20px; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; }
+        .toast-modern {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            border-radius: 60px;
+            z-index: 1000;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .backup-restore { display: flex; gap: 12px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+        .user-list { margin-top: 20px; border-top: 1px solid #eef2f6; padding-top: 20px; }
+        @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr 1fr; } .tab-btn { padding: 6px 12px; font-size: 0.75rem; } }
+        .receipt-print { display: none; }
+        .report-print { display: none; }
+    </style>
+</head>
+<body>
+<div id="authContainer" class="auth-container">
+    <h2>📋 PharmaManager Pro</h2>
+    <div id="loginForm">
+        <input type="text" id="loginUsername" placeholder="Username" autocomplete="off">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button id="loginBtn">🔐 Ingia</button>
+        <div class="switch" id="showRegister">💡 Huna akaunti? Sajili</div>
+    </div>
+    <div id="registerForm" style="display:none;">
+        <input type="text" id="regUsername" placeholder="Username">
+        <input type="password" id="regPassword" placeholder="Password">
+        <input type="text" id="regStoreName" placeholder="Jina la duka">
+        <input type="text" id="regPhone" placeholder="Namba ya simu">
+        <button id="registerBtn">📝 Sajili</button>
+        <div class="switch" id="showLogin">🔙 Rudi kwenye kuingia</div>
+    </div>
+</div>
+
+<div id="mainApp" class="main-app">
+    <div class="business-header">
+        <h1 id="storeNameHeader">SHAUWQAN MEDICS</h1>
+        <p id="storeInfo">Admin | <span id="roleBadge"></span></p>
+        <button id="logoutBtn" style="background: rgba(255,255,255,0.2); margin-top: 10px;">🚪 Toka</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+        <button class="tab-btn" data-tab="inventory">📦 Inventory</button>
+        <button class="tab-btn" data-tab="sales">🛒 New Sale</button>
+        <button class="tab-btn" data-tab="reports">📑 Reports</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="panel active">
+        <div class="stats-grid">
+            <div class="stat-card"><h4>💰 Today Sales</h4><div class="value" id="todaySalesShop">0</div><small>TZS</small></div>
+            <div class="stat-card"><h4>📈 Today Profit</h4><div class="value" id="todayProfit">0</div><small>TZS</small></div>
+            <div class="stat-card"><h4>🧾 Today Expenses</h4><div class="value" id="todayExpenses">0</div><small>TZS</small></div>
+            <div class="stat-card"><h4>🔄 Net Profit</h4><div class="value" id="todayNet">0</div><small>TZS</small></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><h4>📦 Out of Stock</h4><div class="value" id="outOfStockCount">0</div></div>
+            <div class="stat-card"><h4>⏰ Expired Items</h4><div class="value" id="expiredCount">0</div></div>
+            <div class="stat-card"><h4>📅 Near Expiry (100d)</h4><div class="value" id="nearExpiryCount">0</div></div>
+            <div class="stat-card"><h4>🛒 Moved Items</h4><div class="value" id="movedItemsValue">0</div></div>
+        </div>
+        <div class="expiry-block"><strong>📅 Dawa zitakazo expire ndani ya siku 100</strong><div id="expire100List" style="margin-top: 12px;"></div></div>
+        <div class="graph-section">
+            <div class="graph-container">
+                <strong>📊 Today Income - Bar Graph</strong>
+                <div class="bar-group"><div class="bar-label"><span>Cash</span><span id="cashAmount">0 TZS</span></div><div class="bar"><div class="bar-fill" id="cashBar" style="width:0%"></div></div></div>
+                <div class="bar-group"><div class="bar-label"><span>Mpesa</span><span id="mpesaAmount">0 TZS</span></div><div class="bar"><div class="bar-fill" id="mpesaBar" style="width:0%"></div></div></div>
+                <div class="bar-group"><div class="bar-label"><span>Airtel Money</span><span id="airtelAmount">0 TZS</span></div><div class="bar"><div class="bar-fill" id="airtelBar" style="width:0%"></div></div></div>
+            </div>
+            <div class="payment-stats"><strong>💳 Payment Statistics</strong><div id="paymentStatsText"></div></div>
+        </div>
+        <div style="margin-top: 20px;">
+            <button id="addExpenseBtn" class="btn-secondary">➕ Add Expense</button>
+            <button id="copyReportBtn" style="background:#2c7da0; margin-left: 8px;">📋 Tuma Ripoti (Nakili Ujumbe)</button>
+            <button id="generateReportBtn" style="background:#8e44ad; margin-left: 8px;">📄 PDF Report</button>
+        </div>
+        <div id="expenseFormContainer" style="display:none; margin-top:12px;" class="expense-form">
+            <input type="number" id="expenseAmount" placeholder="Kiasi (TZS)" step="0.01">
+            <input type="text" id="expenseDesc" placeholder="Maelezo (umeme, chakula...)" autocomplete="off">
+            <button id="saveExpenseBtn">Save</button>
+            <button id="cancelExpenseBtn">Cancel</button>
+        </div>
+        <div class="backup-restore">
+            <button id="backupBtn" style="background:#2c7da0;">💾 Backup Data</button>
+            <button id="restoreBtn" style="background:#27ae60;">📂 Restore Data</button>
+            <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
+        </div>
+        <!-- Admin panel: user management -->
+        <div id="adminPanel" style="display:none; margin-top: 24px; border-top: 1px solid #eef2f6; padding-top: 20px;">
+            <h3>👥 User Management (Admin)</h3>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <input type="text" id="newUsername" placeholder="Username">
+                <input type="password" id="newPassword" placeholder="Password">
+                <input type="text" id="newStoreName" placeholder="Duka name">
+                <input type="text" id="newPhone" placeholder="Phone">
+                <button id="createUserBtn">➕ Add User</button>
+            </div>
+            <div id="userList"></div>
+        </div>
+    </div>
+
+    <!-- Inventory (Admin only can edit; salesperson can view only) -->
+    <div id="inventory" class="panel">
+        <div id="inventoryAdminActions" class="form-group">
+            <input type="text" id="medName" placeholder="Medicine name">
+            <input type="number" id="medCost" placeholder="Cost (TZS)">
+            <input type="number" id="medPrice" placeholder="Selling price (TZS)">
+            <input type="number" id="medStock" placeholder="Stock Qty">
+            <input type="date" id="medExpiry" placeholder="Expiry date">
+            <button id="addMedBtn">➕ Add</button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button id="importExcelBtn" style="background:#f39c12;">📂 Import Excel</button>
+            <button id="exportExcelBtn" style="background:#27ae60;">📎 Export Excel</button>
+            <input type="file" id="importFile" accept=".xlsx, .xls" style="display:none;">
+        </div>
+        <input type="text" id="searchInventory" placeholder="🔍 Search by name..." style="width:100%; padding:10px; border-radius:30px; border:1px solid #ccc; margin-bottom:12px;">
+        <div style="overflow-x:auto;">
+            <table id="inventoryTable"><thead><tr><th>Name</th><th>Cost</th><th>Price</th><th>Stock</th><th>Expiry</th><th>Actions</th></tr></thead><tbody id="inventoryBody"></tbody></table>
+        </div>
+    </div>
+
+    <!-- Sales (POS) -->
+    <div id="sales" class="panel">
+        <div class="form-group">
+            <select id="productSelect"></select>
+            <input type="number" id="saleQty" placeholder="Quantity" min="1" value="1">
+            <button id="addToCartBtn">➕ Add to Cart</button>
+        </div>
+        <h3>🛍️ Cart</h3>
+        <div id="cartItems"></div>
+        <div class="total">Total: <span id="cartTotal">0</span> TZS</div>
+        <div class="form-group">
+            <select id="paymentMethod"><option value="Cash">💵 Cash</option><option value="Mpesa">📱 Mpesa</option><option value="Airtel">📞 Airtel Money</option></select>
+            <button id="completeSaleBtn">✅ Complete Sale</button>
+        </div>
+        <div style="margin-top: 20px;">
+            <button id="returnBtn" class="btn-secondary">🔄 Return Item</button>
+        </div>
+        <p id="saleMessage" style="color: green; margin-top: 12px;"></p>
+    </div>
+
+    <!-- Reports -->
+    <div id="reports" class="panel">
+        <h3>📜 Mauzo ya Zamani</h3>
+        <div id="adminFilter" style="margin-bottom: 12px; display:none;">
+            <label>Filter by user:</label>
+            <select id="filterUserSelect"></select>
+        </div>
+        <button id="clearHistoryBtn" class="btn-danger">Futa Historia</button>
+        <div id="salesHistoryList"></div>
+    </div>
+</div>
+
+<!-- Hidden divs for printing -->
+<div id="receiptPrintDiv" class="receipt-print" style="font-family: monospace; padding: 20px;"></div>
+<div id="reportPrintDiv" class="report-print" style="font-family: monospace; padding: 20px;"></div>
+
+<script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<script>
+    // ---------- GLOBAL ----------
+    let currentUser = null;  // { id, username, storeName, phone, isAdmin }
+    let db = null;
+    let cart = [];
+
+    // ---------- DATABASE (single) ----------
+    async function initDB() {
+        db = new Dexie('pharm_main');
+        db.version(1).stores({
+            users: '++id, username, passwordHash, storeName, phone, isAdmin',
+            medicines: '++id, userId, name, cost, price, stock, expiry',
+            sales: '++id, userId, date, totalAmount, totalProfit, items, paymentMethod, timestamp',
+            returns: '++id, userId, originalSaleId, date, items, totalRefund, reason',
+            expenses: '++id, userId, date, amount, description'
+        });
+        await db.open();
+
+        // Create default admin if none
+        const adminCount = await db.users.where('isAdmin').equals(1).count();
+        if (adminCount === 0) {
+            const adminHash = CryptoJS.SHA256('admin123').toString();
+            await db.users.add({
+                username: 'admin',
+                passwordHash: adminHash,
+                storeName: 'Admin Office',
+                phone: '0000000000',
+                isAdmin: 1
+            });
+        }
+    }
+
+    // ---------- AUTH ----------
+    async function registerUser(username, password, storeName, phone) {
+        const existing = await db.users.where('username').equals(username).first();
+        if (existing) { showToast('Username tayari ipo!', 'error'); return false; }
+        const passwordHash = CryptoJS.SHA256(password).toString();
+        await db.users.add({ username, passwordHash, storeName, phone, isAdmin: 0 });
+        showToast('Usajili umefanikiwa! Sasa ingia.', 'success');
+        return true;
+    }
+
+    async function loginUser(username, password) {
+        const user = await db.users.where('username').equals(username).first();
+        if (!user) { showToast('Username haipo', 'error'); return false; }
+        const hash = CryptoJS.SHA256(password).toString();
+        if (user.passwordHash !== hash) { showToast('Password si sahihi', 'error'); return false; }
+        currentUser = { id: user.id, username: user.username, storeName: user.storeName, phone: user.phone, isAdmin: user.isAdmin };
+        sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+        showMainApp();
+        return true;
+    }
+
+    function logout() {
+        sessionStorage.removeItem('currentUser');
+        currentUser = null;
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('authContainer').style.display = 'block';
+        cart = [];
+        showToast('Umefunga akaunti.', 'info');
+    }
+
+    // ---------- CRUD helpers with role checks ----------
+    async function getMedicines(userId = null) {
+        let query = db.medicines;
+        if (userId !== null) query = query.where('userId').equals(userId);
+        else if (!currentUser.isAdmin) query = query.where('userId').equals(currentUser.id);
+        return await query.toArray();
+    }
+
+    async function addMedicine(name, cost, price, stock, expiry) {
+        if (!currentUser.isAdmin) { showToast('Admin pekee ndiye anaweza kuongeza dawa', 'error'); return; }
+        await db.medicines.add({ userId: currentUser.id, name, cost, price, stock, expiry });
+        refreshAll();
+        showToast(`Dawa "${name}" imeongezwa`, 'success');
+    }
+
+    async function updateMedicine(id, data) {
+        if (!currentUser.isAdmin) { showToast('Admin pekee ndiye anaweza kubadilisha dawa', 'error'); return; }
+        await db.medicines.update(id, data);
+        refreshAll();
+    }
+
+    async function deleteMedicine(id) {
+        if (!currentUser.isAdmin) { showToast('Admin pekee ndiye anaweza kufuta dawa', 'error'); return; }
+        await db.medicines.delete(id);
+        refreshAll();
+        showToast('Dawa imefutwa', 'info');
+    }
+
+    async function addSale(saleObj) {
+        saleObj.userId = currentUser.id;
+        await db.sales.add(saleObj);
+    }
+
+    async function getSales(filterUserId = null, startDate = null, endDate = null) {
+        let collection = db.sales;
+        if (filterUserId !== null) collection = collection.where('userId').equals(filterUserId);
+        else if (!currentUser.isAdmin) collection = collection.where('userId').equals(currentUser.id);
+        let sales = await collection.toArray();
+        if (startDate && endDate) {
+            sales = sales.filter(s => s.date >= startDate && s.date <= endDate);
+        }
+        return sales.sort((a,b) => b.timestamp - a.timestamp);
+    }
+
+    async function clearSalesHistory() {
+        if (!currentUser.isAdmin) {
+            await db.sales.where('userId').equals(currentUser.id).delete();
+        } else {
+            await db.sales.clear();
+        }
+        refreshAll();
+        showToast('Historia imefutwa', 'info');
+    }
+
+    async function addExpense(amount, description) {
+        const date = new Date().toISOString().slice(0,10);
+        await db.expenses.add({ userId: currentUser.id, date, amount, description });
+        refreshAll();
+        showToast(`Gharama ya TZS ${amount.toLocaleString()} imeongezwa`, 'success');
+    }
+
+    async function getExpenses(userId = null, startDate = null, endDate = null) {
+        let collection = db.expenses;
+        if (userId !== null) collection = collection.where('userId').equals(userId);
+        else if (!currentUser.isAdmin) collection = collection.where('userId').equals(currentUser.id);
+        let expenses = await collection.toArray();
+        if (startDate && endDate) {
+            expenses = expenses.filter(e => e.date >= startDate && e.date <= endDate);
+        }
+        return expenses;
+    }
+
+    // Returns
+    async function addReturn(originalSaleId, items, totalRefund, reason) {
+        const date = new Date().toISOString().slice(0,10);
+        const ret = { userId: currentUser.id, originalSaleId, date, items, totalRefund, reason, timestamp: Date.now() };
+        await db.returns.add(ret);
+        // Update stock: increase for each returned item
+        for (let it of items) {
+            const med = await db.medicines.get(it.medicineId);
+            if (med) {
+                med.stock += it.quantity;
+                await db.medicines.update(med.id, { stock: med.stock });
+            }
+        }
+        // Also optionally adjust sales? We'll not delete original sale but record return separately.
+        // For reporting, we can subtract returns from net sales.
+        refreshAll();
+        showToast(`Return ya TZS ${totalRefund.toLocaleString()} imerekodiwa`, 'success');
+    }
+
+    async function getReturns(userId = null, startDate = null, endDate = null) {
+        let collection = db.returns;
+        if (userId !== null) collection = collection.where('userId').equals(userId);
+        else if (!currentUser.isAdmin) collection = collection.where('userId').equals(currentUser.id);
+        let returns = await collection.toArray();
+        if (startDate && endDate) {
+            returns = returns.filter(r => r.date >= startDate && r.date <= endDate);
+        }
+        return returns;
+    }
+
+    // ---------- UI Updates ----------
+    async function refreshAll() {
+        if (!db || !currentUser) return;
+        await refreshInventoryTable();
+        await refreshProductSelect();
+        refreshCartUI();
+        await updateDashboard();
+        await updateReportsPanel();
+    }
+
+    async function refreshInventoryTable() {
+        const search = document.getElementById('searchInventory').value.toLowerCase();
+        let medicines = await getMedicines();
+        if (search) medicines = medicines.filter(m => m.name.toLowerCase().includes(search));
+        const tbody = document.getElementById('inventoryBody');
+        tbody.innerHTML = '';
+        for (let med of medicines) {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = med.name;
+            row.insertCell(1).textContent = med.cost.toLocaleString();
+            row.insertCell(2).textContent = med.price.toLocaleString();
+            row.insertCell(3).textContent = med.stock;
+            row.insertCell(4).textContent = med.expiry || 'N/A';
+            const actions = row.insertCell(5);
+            if (currentUser.isAdmin) {
+                const editBtn = document.createElement('button'); editBtn.textContent = '✏️'; editBtn.style.padding='4px 12px'; editBtn.style.marginRight='6px';
+                editBtn.onclick = () => editMedicinePrompt(med.id);
+                const delBtn = document.createElement('button'); delBtn.textContent = '🗑️'; delBtn.style.background='#e74c3c'; delBtn.style.padding='4px 12px';
+                delBtn.onclick = () => deleteMedicine(med.id);
+                actions.appendChild(editBtn); actions.appendChild(delBtn);
+            } else {
+                actions.textContent = '🔒 Read only';
+            }
+        }
+    }
+
+    async function editMedicinePrompt(id) {
+        const med = await db.medicines.get(id);
+        if (!med) return;
+        const newName = prompt('Jina:', med.name);
+        if (newName === null) return;
+        const newCost = parseFloat(prompt('Bei ya ununuzi (Cost):', med.cost));
+        const newPrice = parseFloat(prompt('Bei ya kuuza (Selling):', med.price));
+        const newStock = parseInt(prompt('Idadi (Stock):', med.stock));
+        const newExpiry = prompt('Expiry date (YYYY-MM-DD):', med.expiry || '');
+        if (isNaN(newCost) || isNaN(newPrice) || isNaN(newStock)) return;
+        await updateMedicine(id, { name: newName.trim(), cost: newCost, price: newPrice, stock: newStock, expiry: newExpiry });
+    }
+
+    async function refreshProductSelect() {
+        const select = document.getElementById('productSelect');
+        const medicines = await getMedicines();
+        select.innerHTML = '<option value="">-- Select Medicine --</option>';
+        medicines.forEach(med => {
+            const opt = document.createElement('option');
+            opt.value = med.id;
+            opt.textContent = `${med.name} - TZS ${med.price} (Stock: ${med.stock})`;
+            if (med.stock <= 0) opt.disabled = true;
+            select.appendChild(opt);
+        });
+    }
+
+    function refreshCartUI() {
+        const container = document.getElementById('cartItems');
+        const totalSpan = document.getElementById('cartTotal');
+        if (!cart.length) { container.innerHTML = '<p>Cart ni tupu</p>'; totalSpan.textContent = '0'; return; }
+        let total = 0;
+        container.innerHTML = '';
+        cart.forEach((item, idx) => {
+            const subtotal = item.price * item.quantity;
+            total += subtotal;
+            const div = document.createElement('div');
+            div.className = 'cart-item';
+            div.innerHTML = `<div><strong>${item.name}</strong><br>${item.price} TZS x ${item.quantity} = ${subtotal} TZS</div>
+                            <button class="remove-cart-item" data-idx="${idx}">❌</button>`;
+            container.appendChild(div);
+        });
+        totalSpan.textContent = total.toLocaleString();
+        document.querySelectorAll('.remove-cart-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.getAttribute('data-idx'));
+                cart.splice(idx, 1);
+                refreshCartUI();
+            });
+        });
+    }
+
+    async function addToCart() {
+        const select = document.getElementById('productSelect');
+        const medId = parseInt(select.value);
+        if (!medId) { showToast('Chagua dawa kwanza', 'warning'); return; }
+        const med = await db.medicines.get(medId);
+        if (!med) return;
+        let qty = parseInt(document.getElementById('saleQty').value);
+        if (isNaN(qty) || qty < 1) qty = 1;
+        if (med.stock < qty) { showToast(`Stock haitoshi. Ipo: ${med.stock}`, 'error'); return; }
+        const existing = cart.find(i => i.medicineId === medId);
+        if (existing) existing.quantity += qty;
+        else cart.push({ medicineId: med.id, name: med.name, price: med.price, quantity: qty });
+        refreshCartUI();
+        document.getElementById('saleQty').value = 1;
+        select.value = '';
+        showToast(`${qty} x ${med.name} imeongezwa kwenye cart`, 'success');
+    }
+
+    // POS confirmation modal
+    function showConfirmationModal(total, onConfirm) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>Thibitisha Mauzo</h3>
+                <p>Jumla: TZS ${total.toLocaleString()}</p>
+                <p>Je, una uhakika unataka kuuza bidhaa hizi?</p>
+                <div class="modal-buttons">
+                    <button id="confirmYes">Ndiyo, Maliza</button>
+                    <button id="confirmNo" class="btn-secondary">Hapana, Ghairi</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('confirmYes').onclick = () => {
+            modal.remove();
+            onConfirm();
+        };
+        document.getElementById('confirmNo').onclick = () => {
+            modal.remove();
+        };
+    }
+
+    async function completeSale() {
+        if (!cart.length) { showToast('Hakuna bidhaa kwenye cart', 'warning'); return; }
+        const total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        showConfirmationModal(total, async () => {
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            // Verify stock again
+            for (let item of cart) {
+                const med = await db.medicines.get(item.medicineId);
+                if (!med || med.stock < item.quantity) { showToast(`Stock ya ${item.name} haitoshi.`, 'error'); return; }
+            }
+            let totalAmount = 0, totalProfit = 0;
+            const soldItems = [];
+            for (let item of cart) {
+                const med = await db.medicines.get(item.medicineId);
+                med.stock -= item.quantity;
+                await db.medicines.update(med.id, { stock: med.stock });
+                const subtotal = item.price * item.quantity;
+                const profitItem = (item.price - med.cost) * item.quantity;
+                totalAmount += subtotal;
+                totalProfit += profitItem;
+                soldItems.push({ medicineId: med.id, name: med.name, qty: item.quantity, price: item.price, cost: med.cost });
+            }
+            const today = new Date().toISOString().slice(0,10);
+            const saleId = Date.now();
+            await addSale({ id: saleId, date: today, totalAmount, totalProfit, items: soldItems, paymentMethod, timestamp: Date.now() });
+            cart = [];
+            refreshAll();
+            showToast(`Mauzo ya TZS ${totalAmount.toLocaleString()} yamekamilika!`, 'success');
+
+            // After sale, offer receipt options
+            showReceiptOptions(soldItems, totalAmount, paymentMethod, today);
+        });
+    }
+
+    function showReceiptOptions(items, total, method, date) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>Risiti ya Mauzo</h3>
+                <p>Jumla: TZS ${total.toLocaleString()}</p>
+                <div class="modal-buttons">
+                    <button id="receiptSms">📱 Tuma kwa SMS</button>
+                    <button id="receiptPrint">🖨️ Chapisha/PDF</button>
+                    <button id="receiptClose">✖️ Funga</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('receiptSms').onclick = () => {
+            modal.remove();
+            const phone = prompt('Weka namba ya simu ya mteja (kwa mfano 0712345678):');
+            if (phone) {
+                const receipt = generateReceiptText(items, total, method, date);
+                const smsUrl = `sms:${phone}?body=${encodeURIComponent(receipt)}`;
+                window.location.href = smsUrl;
+            }
+        };
+        document.getElementById('receiptPrint').onclick = () => {
+            modal.remove();
+            printReceipt(items, total, method, date);
+        };
+        document.getElementById('receiptClose').onclick = () => modal.remove();
+    }
+
+    function generateReceiptText(items, total, method, date) {
+        const store = currentUser.storeName;
+        let receipt = `=== ${store} ===\nTarehe: ${date}\n--------------------------------\n`;
+        items.forEach(it => {
+            receipt += `${it.name} x ${it.qty} = TZS ${(it.price * it.qty).toLocaleString()}\n`;
+        });
+        receipt += `--------------------------------\nJumla: TZS ${total.toLocaleString()}\nMalipo: ${method}\nAsante kwa kununua!`;
+        return receipt;
+    }
+
+    function printReceipt(items, total, method, date) {
+        const div = document.getElementById('receiptPrintDiv');
+        div.innerHTML = `
+            <div style="text-align: center; font-family: monospace;">
+                <h3>${currentUser.storeName}</h3>
+                <p>${currentUser.phone}</p>
+                <p>${date}</p>
+                <hr>
+                ${items.map(it => `<div>${it.name} x ${it.qty} = TZS ${(it.price * it.qty).toLocaleString()}</div>`).join('')}
+                <hr>
+                <div><strong>Jumla: TZS ${total.toLocaleString()}</strong></div>
+                <div>Malipo: ${method}</div>
+                <br>
+                <div>Asante kwa kununua!</div>
+            </div>
+        `;
+        const win = window.open('', '_blank');
+        win.document.write(div.innerHTML);
+        win.document.close();
+        win.print();
+    }
+
+    // Return handling
+    async function handleReturn() {
+        // Simple return by product name
+        const productName = prompt('Weka jina la dawa iliyorejeshwa:');
+        if (!productName) return;
+        const medicines = await getMedicines();
+        const med = medicines.find(m => m.name.toLowerCase().includes(productName.toLowerCase()));
+        if (!med) { showToast('Dawa haipatikani', 'error'); return; }
+        const qty = parseInt(prompt('Idadi iliyorejeshwa:'));
+        if (isNaN(qty) || qty <= 0) return;
+        const refund = med.price * qty;
+        const confirmMsg = `Je, unathibitisha kurudisha ${qty} x ${med.name} kwa TZS ${refund.toLocaleString()}?`;
+        if (confirm(confirmMsg)) {
+            // Increase stock
+            med.stock += qty;
+            await db.medicines.update(med.id, { stock: med.stock });
+            // Record return
+            await addReturn(null, [{ medicineId: med.id, name: med.name, quantity: qty, price: med.price }], refund, 'Return by customer');
+            showToast(`Return ya TZS ${refund.toLocaleString()} imefanikiwa`, 'success');
+        }
+    }
+
+    // Reports PDF generation
+    async function generateDateRangeReport() {
+        const start = prompt('Tarehe ya kuanza (YYYY-MM-DD):', new Date().toISOString().slice(0,10));
+        if (!start) return;
+        const end = prompt('Tarehe ya mwisho (YYYY-MM-DD):', new Date().toISOString().slice(0,10));
+        if (!end) return;
+
+        let sales = [];
+        let expenses = [];
+        let returns = [];
+
+        if (currentUser.isAdmin) {
+            // For admin, we might want to show all users or filter by user? We'll show all.
+            sales = await db.sales.where('date').between(start, end).toArray();
+            expenses = await db.expenses.where('date').between(start, end).toArray();
+            returns = await db.returns.where('date').between(start, end).toArray();
+        } else {
+            sales = await db.sales.where('userId').equals(currentUser.id).and(s => s.date >= start && s.date <= end).toArray();
+            expenses = await db.expenses.where('userId').equals(currentUser.id).and(e => e.date >= start && e.date <= end).toArray();
+            returns = await db.returns.where('userId').equals(currentUser.id).and(r => r.date >= start && r.date <= end).toArray();
+        }
+
+        const totalSales = sales.reduce((s, sale) => s + sale.totalAmount, 0);
+        const totalProfit = sales.reduce((s, sale) => s + sale.totalProfit, 0);
+        const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+        const totalReturns = returns.reduce((s, r) => s + r.totalRefund, 0);
+        const netProfit = totalProfit - totalExpenses - totalReturns;
+
+        const div = document.getElementById('reportPrintDiv');
+        div.innerHTML = `
+            <div style="font-family: monospace; max-width: 800px; margin: 0 auto;">
+                <h2 style="text-align: center;">${currentUser.storeName}</h2>
+                <p style="text-align: center;">Ripoti ya Mauzo na Matumizi</p>
+                <p>Kuanzia: ${start} hadi: ${end}</p>
+                <hr>
+                <h3>Muhtasari</h3>
+                <p>Jumla ya Mauzo: TZS ${totalSales.toLocaleString()}</p>
+                <p>Jumla ya Faida: TZS ${totalProfit.toLocaleString()}</p>
+                <p>Jumla ya Matumizi: TZS ${totalExpenses.toLocaleString()}</p>
+                <p>Jumla ya Returns: TZS ${totalReturns.toLocaleString()}</p>
+                <p><strong>Faida Halisi: TZS ${netProfit.toLocaleString()}</strong></p>
+                <hr>
+                <h3>Mauzo kwa Kina</h3>
+                ${sales.map(sale => `<div><strong>${sale.date}</strong> - TZS ${sale.totalAmount.toLocaleString()} (${sale.paymentMethod})<br>${sale.items.map(it => `${it.name} x${it.qty}`).join(', ')}</div>`).join('<hr>')}
+                <hr>
+                <h3>Matumizi</h3>
+                ${expenses.map(exp => `<div>${exp.date} - ${exp.description}: TZS ${exp.amount.toLocaleString()}</div>`).join('')}
+                <hr>
+                <h3>Bidhaa Zilizorejeshwa</h3>
+                ${returns.map(ret => `<div>${ret.date} - TZS ${ret.totalRefund.toLocaleString()} (${ret.reason})<br>${ret.items.map(it => `${it.name} x${it.quantity}`).join(', ')}</div>`).join('')}
+                <hr>
+                <p style="text-align: center;">Ripoti imetolewa na ${currentUser.username} tarehe ${new Date().toISOString().slice(0,10)}</p>
+            </div>
+        `;
+        const win = window.open('', '_blank');
+        win.document.write(div.innerHTML);
+        win.document.close();
+        win.print();
+    }
+
+    // Dashboard updates with net profit and returns
+    async function updateDashboard() {
+        const today = new Date().toISOString().slice(0,10);
+        // Sales today
+        let sales = await getSales(null, today, today);
+        const totalSales = sales.reduce((s, sale) => s + sale.totalAmount, 0);
+        const totalProfit = sales.reduce((s, sale) => s + sale.totalProfit, 0);
+        document.getElementById('todaySalesShop').innerText = totalSales.toLocaleString();
+        document.getElementById('todayProfit').innerText = totalProfit.toLocaleString();
+
+        // Expenses today
+        let expenses = await getExpenses(null, today, today);
+        const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+        document.getElementById('todayExpenses').innerText = totalExpenses.toLocaleString();
+
+        // Returns today
+        let returns = await getReturns(null, today, today);
+        const totalReturns = returns.reduce((s, r) => s + r.totalRefund, 0);
+        const netProfit = totalProfit - totalExpenses - totalReturns;
+        document.getElementById('todayNet').innerText = netProfit.toLocaleString();
+
+        // Stock stats
+        const medicines = await getMedicines();
+        const outOfStock = medicines.filter(m => m.stock === 0).length;
+        document.getElementById('outOfStockCount').innerText = outOfStock;
+        const now = new Date();
+        const expired = medicines.filter(m => m.expiry && new Date(m.expiry) < now).length;
+        document.getElementById('expiredCount').innerText = expired;
+        const hundredDaysLater = new Date(); hundredDaysLater.setDate(now.getDate() + 100);
+        const nearExpiry = medicines.filter(m => m.expiry && new Date(m.expiry) >= now && new Date(m.expiry) <= hundredDaysLater);
+        document.getElementById('nearExpiryCount').innerText = nearExpiry.length;
+        const expListDiv = document.getElementById('expire100List');
+        expListDiv.innerHTML = nearExpiry.length ? nearExpiry.map(m => `<div>• ${m.name} (Exp: ${m.expiry})</div>`).join('') : '<i>Hakuna</i>';
+        let movedQty = 0;
+        sales.forEach(sale => { sale.items.forEach(it => movedQty += it.qty); });
+        document.getElementById('movedItemsValue').innerText = movedQty;
+
+        // Payment graphs
+        let cashTotal = 0, mpesaTotal = 0, airtelTotal = 0;
+        sales.forEach(sale => {
+            if (sale.paymentMethod === 'Cash') cashTotal += sale.totalAmount;
+            else if (sale.paymentMethod === 'Mpesa') mpesaTotal += sale.totalAmount;
+            else if (sale.paymentMethod === 'Airtel') airtelTotal += sale.totalAmount;
+        });
+        const maxVal = Math.max(cashTotal, mpesaTotal, airtelTotal, 1);
+        document.getElementById('cashAmount').innerText = cashTotal.toLocaleString() + ' TZS';
+        document.getElementById('mpesaAmount').innerText = mpesaTotal.toLocaleString() + ' TZS';
+        document.getElementById('airtelAmount').innerText = airtelTotal.toLocaleString() + ' TZS';
+        document.getElementById('cashBar').style.width = (cashTotal / maxVal * 100) + '%';
+        document.getElementById('mpesaBar').style.width = (mpesaTotal / maxVal * 100) + '%';
+        document.getElementById('airtelBar').style.width = (airtelTotal / maxVal * 100) + '%';
+        document.getElementById('paymentStatsText').innerHTML = `Cash: ${cashTotal.toLocaleString()} TZS<br>Mpesa: ${mpesaTotal.toLocaleString()} TZS<br>Airtel: ${airtelTotal.toLocaleString()} TZS`;
+    }
+
+    async function updateReportsPanel() {
+        let sales = [];
+        let filterUserId = null;
+        if (currentUser.isAdmin) {
+            const filterSelect = document.getElementById('filterUserSelect');
+            filterUserId = filterSelect.value ? parseInt(filterSelect.value) : null;
+            sales = await getSales(filterUserId);
+            // Populate user filter dropdown
+            const users = await db.users.toArray();
+            filterSelect.innerHTML = '<option value="">-- All users --</option>';
+            for (let u of users) {
+                filterSelect.innerHTML += `<option value="${u.id}">${u.username} (${u.storeName})</option>`;
+            }
+        } else {
+            sales = await getSales();
+        }
+        const container = document.getElementById('salesHistoryList');
+        if (!sales.length) { container.innerHTML = '<p>Hakuna mauzo yaliyorekodiwa</p>'; return; }
+        container.innerHTML = '';
+        for (let sale of sales) {
+            let userInfo = '';
+            if (currentUser.isAdmin) {
+                const user = await db.users.get(sale.userId);
+                userInfo = `<span style="font-size:0.8rem; background:#eef2f6; padding:2px 6px; border-radius:20px;">👤 ${user?.username || 'deleted'}</span> `;
+            }
+            const card = document.createElement('div');
+            card.style.background = '#f9fafb'; card.style.borderRadius = '20px'; card.style.padding = '12px'; card.style.marginBottom = '12px';
+            card.innerHTML = `<div><strong>📅 ${sale.date}</strong>  |  Jumla: ${sale.totalAmount.toLocaleString()} TZS  |  Faida: ${sale.totalProfit.toLocaleString()} TZS | 💳 ${sale.paymentMethod} ${userInfo}</div>
+                              <div style="font-size:0.8rem;">${sale.items.map(i => `${i.name} (${i.qty})`).join(', ')}</div>`;
+            container.appendChild(card);
+        }
+    }
+
+    // ---------- Admin user management ----------
+    async function getAllUsers() {
+        return await db.users.toArray();
+    }
+
+    async function createUser(username, password, storeName, phone) {
+        if (!currentUser.isAdmin) { showToast('Admin pekee anaweza kuongeza watumiaji', 'error'); return; }
+        const existing = await db.users.where('username').equals(username).first();
+        if (existing) { showToast('Username tayari ipo!', 'error'); return false; }
+        const passwordHash = CryptoJS.SHA256(password).toString();
+        await db.users.add({ username, passwordHash, storeName, phone, isAdmin: 0 });
+        showToast(`Mtu ${username} ameongezwa`, 'success');
+        loadUserList();
+        return true;
+    }
+
+    async function loadUserList() {
+        const users = await getAllUsers();
+        const listDiv = document.getElementById('userList');
+        listDiv.innerHTML = '<h4>Watumiaji wote</h4>';
+        users.forEach(u => {
+            listDiv.innerHTML += `<div style="background:#f1f5f9; margin:6px 0; padding:8px; border-radius:20px;">${u.username} - ${u.storeName} ${u.isAdmin ? '(Admin)' : ''}</div>`;
+        });
+    }
+
+    // ---------- Backup / Restore (per user) ----------
+    async function backupData() {
+        const medicines = await getMedicines();
+        const sales = await getSales();
+        const expenses = await getExpenses();
+        const returns = await getReturns();
+        const backupObj = {
+            version: '3.0',
+            userId: currentUser.id,
+            storeName: currentUser.storeName,
+            storePhone: currentUser.phone,
+            medicines,
+            sales,
+            expenses,
+            returns,
+            backupDate: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pharma_backup_${currentUser.username}_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Backup imefanikiwa!', 'success');
+    }
+
+    async function restoreData(file) {
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (!data.medicines || !data.sales || !data.expenses) throw new Error();
+            // Clear current user data
+            await db.medicines.where('userId').equals(currentUser.id).delete();
+            await db.sales.where('userId').equals(currentUser.id).delete();
+            await db.expenses.where('userId').equals(currentUser.id).delete();
+            await db.returns.where('userId').equals(currentUser.id).delete();
+            for (let med of data.medicines) {
+                med.userId = currentUser.id;
+                await db.medicines.add(med);
+            }
+            for (let sale of data.sales) {
+                sale.userId = currentUser.id;
+                await db.sales.add(sale);
+            }
+            for (let exp of data.expenses) {
+                exp.userId = currentUser.id;
+                await db.expenses.add(exp);
+            }
+            if (data.returns) {
+                for (let ret of data.returns) {
+                    ret.userId = currentUser.id;
+                    await db.returns.add(ret);
+                }
+            }
+            await refreshAll();
+            showToast('Data imerejeshwa!', 'success');
+        } catch (err) {
+            showToast('Faili si sahihi', 'error');
+        }
+    }
+
+    // ---------- Excel Import/Export ----------
+    async function importExcel(file) {
+        if (!currentUser.isAdmin) { showToast('Admin pekee anaweza kuingiza Excel', 'error'); return; }
+        showToast('Inaingiza data...', 'info');
+        try {
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data);
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet);
+            let count = 0;
+            for (let row of rows) {
+                const name = row.Name || row.name;
+                const cost = parseFloat(row.Cost || row.cost);
+                const price = parseFloat(row.Price || row.price);
+                const stock = parseInt(row.Stock || row.stock);
+                const expiry = row.Expiry || row.expiry || '';
+                if (name && !isNaN(cost) && !isNaN(price) && !isNaN(stock)) {
+                    await addMedicine(name, cost, price, stock, expiry);
+                    count++;
+                }
+            }
+            showToast(`${count} dawa zimeingizwa`, 'success');
+        } catch (err) {
+            showToast('Hitilafu ya faili', 'error');
+        }
+    }
+
+    async function exportExcel() {
+        const medicines = await getMedicines();
+        const wsData = medicines.map(m => ({ Name: m.name, Cost: m.cost, Price: m.price, Stock: m.stock, Expiry: m.expiry || '' }));
+        const ws = XLSX.utils.json_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `inventory_${currentUser.username}_${new Date().toISOString().slice(0,10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Export imefanikiwa!', 'success');
+    }
+
+    // ---------- SMS Report Copy ----------
+    async function copySmsReport() {
+        const today = new Date().toISOString().slice(0,10);
+        const sales = await getSales(null, today, today);
+        const totalSales = sales.reduce((s, sale) => s + sale.totalAmount, 0);
+        const totalProfit = sales.reduce((s, sale) => s + sale.totalProfit, 0);
+        const medicines = await getMedicines();
+        const lowStock = medicines.filter(m => m.stock <= 10).map(m => `${m.name}(${m.stock})`).join(', ') || 'Hakuna';
+        const now = new Date();
+        const hundredDaysLater = new Date(); hundredDaysLater.setDate(now.getDate() + 100);
+        const expiring100 = medicines.filter(m => m.expiry && new Date(m.expiry) >= now && new Date(m.expiry) <= hundredDaysLater).map(m => `${m.name}(${m.expiry})`).join(', ') || 'Hakuna';
+        const message = `📊 RIPOTI YA DAWA - ${today}\n💰 Mauzo: TZS ${totalSales.toLocaleString()}\n📈 Faida: TZS ${totalProfit.toLocaleString()}\n⚠️ Dawa zenye stock chini: ${lowStock}\n📅 Dawa zitakazo expire siku 100: ${expiring100}`;
+        navigator.clipboard.writeText(message).then(() => {
+            showToast('Ujumbe umenakiliwa. Fungua SMS na ubandike.', 'success');
+        }).catch(() => alert('Haiwezi kunakili, nakili manually:\n' + message));
+    }
+
+    // ---------- UI Helpers ----------
+    function showMainApp() {
+        document.getElementById('storeNameHeader').innerText = currentUser.storeName;
+        document.getElementById('storeInfo').innerHTML = `${currentUser.storeName} | ${currentUser.phone} | <span id="roleBadge">${currentUser.isAdmin ? 'Admin' : 'Muuzaji'}</span>`;
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        // Show/hide admin-only elements
+        const adminOnly = document.getElementById('adminPanel');
+        const adminFilter = document.getElementById('adminFilter');
+        const inventoryAdminActions = document.getElementById('inventoryAdminActions');
+        if (currentUser.isAdmin) {
+            adminOnly.style.display = 'block';
+            adminFilter.style.display = 'block';
+            inventoryAdminActions.style.display = 'flex';
+        } else {
+            adminOnly.style.display = 'none';
+            adminFilter.style.display = 'none';
+            inventoryAdminActions.style.display = 'none';
+        }
+        refreshAll();
+        if (currentUser.isAdmin) loadUserList();
+    }
+
+    function checkSession() {
+        const saved = sessionStorage.getItem('currentUser');
+        if (saved) {
+            currentUser = JSON.parse(saved);
+            initDB().then(() => showMainApp());
+        } else {
+            initDB();
+        }
+    }
+
+    function initTabs() {
+        const btns = document.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('.panel');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                panels.forEach(p => p.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                if (tabId === 'reports') updateReportsPanel();
+                else if (tabId === 'dashboard') updateDashboard();
+            });
+        });
+    }
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-modern';
+        toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ---------- Event Listeners ----------
+    document.addEventListener('DOMContentLoaded', () => {
+        checkSession();
+        initTabs();
+        // Auth
+        document.getElementById('loginBtn').onclick = () => {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            if (username && password) loginUser(username, password);
+            else showToast('Jaza username na password', 'warning');
+        };
+        document.getElementById('registerBtn').onclick = () => {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const storeName = document.getElementById('regStoreName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            if (username && password && storeName && phone) registerUser(username, password, storeName, phone);
+            else showToast('Jaza taarifa zote', 'warning');
+        };
+        document.getElementById('showRegister').onclick = () => {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        };
+        document.getElementById('showLogin').onclick = () => {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        };
+        document.getElementById('logoutBtn').onclick = () => logout();
+        // Inventory
+        document.getElementById('addMedBtn').onclick = () => {
+            const name = document.getElementById('medName').value.trim();
+            const cost = parseFloat(document.getElementById('medCost').value);
+            const price = parseFloat(document.getElementById('medPrice').value);
+            const stock = parseInt(document.getElementById('medStock').value);
+            const expiry = document.getElementById('medExpiry').value;
+            if (!name || isNaN(cost) || isNaN(price) || isNaN(stock)) { showToast('Jaza taarifa zote kwa usahihi', 'warning'); return; }
+            addMedicine(name, cost, price, stock, expiry);
+            document.getElementById('medName').value = ''; document.getElementById('medCost').value = ''; document.getElementById('medPrice').value = ''; document.getElementById('medStock').value = ''; document.getElementById('medExpiry').value = '';
+        };
+        document.getElementById('searchInventory').addEventListener('input', refreshInventoryTable);
+        document.getElementById('importExcelBtn').onclick = () => document.getElementById('importFile').click();
+        document.getElementById('exportExcelBtn').onclick = () => exportExcel();
+        document.getElementById('importFile').onchange = (e) => { if (e.target.files.length) importExcel(e.target.files[0]); e.target.value = ''; };
+        // Sales
+        document.getElementById('addToCartBtn').onclick = addToCart;
+        document.getElementById('completeSaleBtn').onclick = completeSale;
+        document.getElementById('returnBtn').onclick = handleReturn;
+        // Expenses
+        document.getElementById('addExpenseBtn').onclick = () => document.getElementById('expenseFormContainer').style.display = 'flex';
+        document.getElementById('cancelExpenseBtn').onclick = () => document.getElementById('expenseFormContainer').style.display = 'none';
+        document.getElementById('saveExpenseBtn').onclick = async () => {
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const desc = document.getElementById('expenseDesc').value.trim();
+            if (isNaN(amount) || amount <= 0) { showToast('Weka kiasi sahihi', 'warning'); return; }
+            await addExpense(amount, desc);
+            document.getElementById('expenseFormContainer').style.display = 'none';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDesc').value = '';
+        };
+        document.getElementById('copyReportBtn').onclick = copySmsReport;
+        document.getElementById('clearHistoryBtn').onclick = async () => { if (confirm('Futa historia yote ya mauzo?')) await clearSalesHistory(); };
+        // Backup & Restore
+        document.getElementById('backupBtn').onclick = () => backupData();
+        document.getElementById('restoreBtn').onclick = () => document.getElementById('restoreFileInput').click();
+        document.getElementById('restoreFileInput').onchange = (e) => { if (e.target.files.length) restoreData(e.target.files[0]); e.target.value = ''; };
+        // Admin: create user
+        document.getElementById('createUserBtn').onclick = async () => {
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const storeName = document.getElementById('newStoreName').value.trim();
+            const phone = document.getElementById('newPhone').value.trim();
+            if (username && password && storeName && phone) {
+                await createUser(username, password, storeName, phone);
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('newStoreName').value = '';
+                document.getElementById('newPhone').value = '';
+            } else showToast('Jaza taarifa zote za mtumiaji', 'warning');
+        };
+        // Admin filter for reports
+        document.getElementById('filterUserSelect').addEventListener('change', () => updateReportsPanel());
+        // PDF Report button
+        document.getElementById('generateReportBtn').onclick = generateDateRangeReport;
+    });
+</script>
+</body>
+</html>

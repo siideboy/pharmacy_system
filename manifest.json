@@ -1,0 +1,21 @@
+{
+  "name": "PharmaManager Pro",
+  "short_name": "PharmaMgr",
+  "description": "Pharmacy Management System with multi-user support",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1c5d5b",
+  "theme_color": "#1c5d5b",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192?text=PM",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512?text=PM",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

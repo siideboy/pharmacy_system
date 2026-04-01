@@ -1,0 +1,8 @@
+<?php
+require_once '../config/database.php';
+header('Content-Type: application/json');
+if (!isset($_SESSION['user_id'])) exit;
+$id = intval($_GET['id']);
+$result = $conn->query("SELECT category_id as id, category_name as name, description, is_active as status FROM categories WHERE category_id=$id");
+echo json_encode($result->fetch_assoc());
+?>

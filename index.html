@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>QAN MEDICS - Pharmacy Management</title>
+    <!-- Bootstrap 5 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --sidebar-width: 240px;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            font-size: 0.9rem;
+            overflow-x: hidden;
+        }
+        /* Sidebar (off-canvas on mobile) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100%;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            z-index: 1050;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        .sidebar.show {
+            transform: translateX(0);
+        }
+        .sidebar-brand {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .sidebar-brand h4 {
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .sidebar-menu {
+            padding: 0.5rem 0;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem 1rem;
+            color: #495057;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .menu-item i {
+            width: 24px;
+            margin-right: 0.5rem;
+            text-align: center;
+        }
+        .menu-item.active, .menu-item:hover {
+            background-color: #f8f9fa;
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+        /* Main content */
+        .main-content {
+            margin-left: 0;
+            transition: margin-left 0.3s;
+        }
+        .topbar {
+            background: white;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+        .page-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        .topbar-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.75rem;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .user-info img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        /* Dashboard content */
+        .dashboard-content {
+            padding: 1rem;
+        }
+        /* Quick actions */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .quick-actions .btn {
+            border-radius: 20px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .stats-card .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .stats-card .label {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 220px;
+        }
+        /* Loading spinner */
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+        }
+        /* Modal adjustments for mobile */
+        @media (max-width: 768px) {
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar (off-canvas) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h4><i class="fas fa-clinic-medical"></i> QAN MEDICS</h4>
+            <small class="text-muted">TANGA-SEGERA HQ-21819</small>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" data-page="dashboard">
+                <i class="fas fa-home"></i> Dashboard
+            </div>
+            <div class="menu-item" data-page="category">
+                <i class="fas fa-tags"></i> Category Entry
+            </div>
+            <div class="menu-item" data-page="brand">
+                <i class="fas fa-copyright"></i> Brand Name Entry
+            </div>
+            <div class="menu-item" data-page="purchase">
+                <i class="fas fa-shopping-cart"></i> Purchase Entry
+            </div>
+            <div class="menu-item" data-page="dispensing">
+                <i class="fas fa-pills"></i> Dispensing
+            </div>
+            <div class="menu-item" data-page="store">
+                <i class="fas fa-warehouse"></i> MAIN STORE
+            </div>
+            <div class="menu-item" data-page="sales">
+                <i class="fas fa-cash-register"></i> Sales Management
+            </div>
+            <div class="menu-item" data-page="order">
+                <i class="fas fa-clipboard-list"></i> Sales Order
+            </div>
+            <div class="menu-item" data-page="invoice">
+                <i class="fas fa-file-invoice"></i> Proforma Invoice
+            </div>
+            <div class="menu-item" data-page="expenditure">
+                <i class="fas fa-money-bill-wave"></i> Expenditure
+            </div>
+            <div class="menu-item" data-page="reports">
+                <i class="fas fa-chart-bar"></i> Reports
+            </div>
+            <div class="menu-item" data-page="customers">
+                <i class="fas fa-users"></i> Customers
+            </div>
+            <div class="menu-item" data-page="suppliers">
+                <i class="fas fa-truck"></i> Suppliers
+            </div>
+            <div class="menu-header text-muted small px-3 mt-2">System Setting</div>
+            <div class="menu-item" data-page="staff">
+                <i class="fas fa-user-shield"></i> Staff
+            </div>
+            <div class="menu-item" data-page="branches">
+                <i class="fas fa-code-branch"></i> Branches
+            </div>
+            <div class="menu-item" data-page="stocks">
+                <i class="fas fa-boxes"></i> Create Stocks
+            </div>
+            <div class="menu-item" data-page="location">
+                <i class="fas fa-map-marked-alt"></i> Location
+            </div>
+            <div class="menu-item" data-page="backup">
+                <i class="fas fa-database"></i> Backup
+            </div>
+            <div class="menu-item" data-page="logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content" id="mainContent">
+        <div class="topbar">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h5 class="page-title">Dashboard</h5>
+            <div class="topbar-info">
+                <span><i class="fas fa-phone"></i> +255 774 525 730</span>
+                <div class="user-info">
+                    <img src="https://ui-avatars.com/api/?name=Zaynab+Juma&background=4a6bff&color=fff" alt="User">
+                    <span>Zaynab Juma</span>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-content" id="content-area">
+            <!-- Dynamic content loads here -->
+        </div>
+    </div>
+
+    <!-- Modal templates (will be cloned as needed) -->
+    <div id="modalContainer"></div>
+
+    <script>
+        // Sidebar toggle
+        $('#menuToggle').click(function() {
+            $('#sidebar').toggleClass('show');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        $(document).click(function(e) {
+            if ($(window).width() <= 992) {
+                if (!$(e.target).closest('.sidebar').length && !$(e.target).closest('.menu-toggle').length) {
+                    $('#sidebar').removeClass('show');
+                }
+            }
+        });
+
+        // Function to load page content via AJAX
+        function loadPage(page, title) {
+            $('#content-area').html(`
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Loading...</p>
+                </div>
+            `);
+            $.ajax({
+                url: 'pages/' + page + '.php',
+                type: 'GET',
+                success: function(html) {
+                    $('#content-area').html(html);
+                    $('.page-title').text(title);
+                    // Re-bind form events after content loaded
+                    bindFormEvents();
+                },
+                error: function() {
+                    $('#content-area').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Failed to load page. Please check if the page exists in the "pages" folder.
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        // Menu item click
+        $('.menu-item').click(function() {
+            const page = $(this).data('page');
+            if (page === 'logout') {
+                window.location.href = 'logout.php';
+                return;
+            }
+            const title = $(this).text().trim();
+            $('.menu-item').removeClass('active');
+            $(this).addClass('active');
+            loadPage(page, title);
+            if ($(window).width() <= 992) $('#sidebar').removeClass('show');
+        });
+
+        // Quick actions buttons (they already exist in dashboard.php, but we'll also bind for dynamic content)
+        $(document).on('click', '.quick-actions .btn', function() {
+            const btnText = $(this).text().trim();
+            let page = '';
+            if (btnText.includes('POS')) page = 'sales';
+            else if (btnText.includes('Verify Purchase')) page = 'purchase';
+            else if (btnText.includes('Verify Transfer')) page = 'dispensing';
+            else if (btnText.includes('Stock Adjust')) page = 'stocks';
+            else if (btnText.includes('Stocks Status')) page = 'store';
+            else if (btnText.includes('Item IN & OUT')) page = 'order';
+            else if (btnText.includes('Ledger')) page = 'reports';
+            else if (btnText.includes('User Privileges')) page = 'staff';
+            if (page) {
+                // Find corresponding menu item and click
+                $(`.menu-item[data-page="${page}"]`).click();
+            }
+        });
+
+        // Generic function to handle any form submission (CRUD) via AJAX
+        function bindFormEvents() {
+            // Example: category form submission
+            $(document).on('submit', '#categoryForm', function(e) {
+                e.preventDefault();
+                const formData = $(this).serialize();
+                $.ajax({
+                    url: 'api/categories.php',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification('success', response.message);
+                            $('#addCategoryModal').modal('hide');
+                            loadPage('category', 'Category Entry');
+                        } else {
+                            showNotification('danger', response.error || 'Error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('danger', 'Server error');
+                    }
+                });
+            });
+
+            // Edit record modal trigger
+            $(document).on('click', '.edit-category', function() {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: 'api/get_category.php',
+                    type: 'GET',
+                    data: { id: id },
+                    success: function(cat) {
+                        // Create edit modal dynamically
+                        const modalHtml = `
+                            <div class="modal fade" id="editCategoryModal" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Category</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form id="editCategoryForm">
+                                            <div class="modal-body">
+                                                <input type="hidden" name="action" value="update">
+                                                <input type="hidden" name="id" value="${cat.id}">
+                                                <div class="mb-3">
+                                                    <label>Category Name</label>
+                                                    <input type="text" name="name" class="form-control" value="${cat.name}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label>Description</label>
+                                                    <textarea name="description" class="form-control">${cat.description}</textarea>
+                                                </div>
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" name="status" class="form-check-input" ${cat.status == 1 ? 'checked' : ''}>
+                                                    <label class="form-check-label">Active</label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Update</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        $('#modalContainer').html(modalHtml);
+                        $('#editCategoryModal').modal('show');
+                        $('#editCategoryForm').off('submit').on('submit', function(e) {
+                            e.preventDefault();
+                            const formData = $(this).serialize();
+                            $.ajax({
+                                url: 'api/categories.php',
+                                type: 'POST',
+                                data: formData,
+                                success: function(response) {
+                                    if (response.success) {
+                                        showNotification('success', 'Category updated');
+                                        $('#editCategoryModal').modal('hide');
+                                        loadPage('category', 'Category Entry');
+                                    } else {
+                                        showNotification('danger', response.error);
+                                    }
+                                }
+                            });
+                        });
+                    }
+                });
+            });
+
+            // Delete record
+            $(document).on('click', '.delete-category', function() {
+                if (confirm('Delete this category?')) {
+                    const id = $(this).data('id');
+                    $.ajax({
+                        url: 'api/categories.php',
+                        type: 'POST',
+                        data: { action: 'delete', id: id },
+                        success: function(response) {
+                            if (response.success) {
+                                showNotification('success', 'Deleted');
+                                loadPage('category', 'Category Entry');
+                            } else {
+                                showNotification('danger', response.error);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Simple notification
+        function showNotification(type, message) {
+            const notif = $(`<div class="alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3" style="z-index: 1100;">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`);
+            $('body').append(notif);
+            setTimeout(() => notif.alert('close'), 3000);
+        }
+
+        // Initial load
+        $(document).ready(function() {
+            loadPage('dashboard', 'Dashboard');
+            bindFormEvents();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

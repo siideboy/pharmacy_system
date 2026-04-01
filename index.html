@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>Shauwqan Medics | Pharmacy Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: #eef5e8;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* APP LAYOUT */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* FIXED SIDEBAR (never reloads) */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0b3b2f 0%, #1b5e3f 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 20px rgba(0, 32, 0, 0.2);
+            transition: all 0.2s ease;
+            z-index: 20;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .sidebar-header p {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 6px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            list-style: none;
+            padding: 0 12px;
+        }
+
+        .nav-item {
+            margin: 6px 0;
+            border-radius: 40px;
+            transition: all 0.2s;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 18px;
+            color: #e6f7e6;
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 40px;
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+
+        .nav-item a:hover {
+            background: #2e7d5e;
+            color: white;
+        }
+
+        .nav-item.active a {
+            background: #f5b042;
+            color: #1a3a2a;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-icon {
+            font-size: 1.3rem;
+            min-width: 28px;
+            text-align: center;
+        }
+
+        /* MAIN CONTENT AREA */
+        .main-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #f9fef7;
+        }
+
+        /* TOP HEADER */
+        .top-header {
+            background: white;
+            padding: 16px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            border-bottom: 2px solid #c8e6c9;
+        }
+
+        .pharmacy-info h3 {
+            color: #1e4a2f;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .pharmacy-info p {
+            color: #5a6e5a;
+            font-size: 0.8rem;
+        }
+
+        .user-info {
+            background: #e9f5e9;
+            padding: 6px 16px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info span {
+            font-weight: 600;
+            color: #1b5e3f;
+        }
+
+        /* DYNAMIC CONTENT WRAPPER */
+        .dynamic-content {
+            padding: 24px 28px;
+            transition: all 0.2s;
+        }
+
+        /* CARDS GRID */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 18px;
+            box-shadow: 0 10px 20px rgba(0, 32, 0, 0.05);
+            border-left: 6px solid #2e7d32;
+            transition: 0.2s;
+        }
+
+        .stat-card h4 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #5a6e5a;
+            margin-bottom: 12px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e4a2f;
+        }
+
+        .stat-card .unit {
+            font-size: 0.9rem;
+            font-weight: normal;
+            color: #7c8e7c;
+        }
+
+        /* CHARTS ROW */
+        .charts-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 28px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-box {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            flex: 1;
+            min-width: 240px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.05);
+        }
+
+        .chart-box h3 {
+            color: #1b5e3f;
+            margin-bottom: 18px;
+            font-size: 1.2rem;
+            border-left: 4px solid #f5b042;
+            padding-left: 12px;
+        }
+
+        canvas {
+            max-height: 260px;
+            width: 100%;
+        }
+
+        /* Forms & tables for other views */
+        .form-card, .data-table {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #1b4d2e;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cfe3cf;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        button {
+            background: #2e7d32;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1b5e3f;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid #e0f0e0;
+        }
+
+        th {
+            color: #1b5e3f;
+        }
+
+        .badge {
+            background: #fdf4e0;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        /* responsive - mobile friendly */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+                min-width: 80px;
+            }
+            .sidebar-header h2, .sidebar-header p, .nav-item a span:not(.nav-icon) {
+                display: none;
+            }
+            .nav-item a {
+                justify-content: center;
+                padding: 14px 0;
+            }
+            .nav-icon {
+                font-size: 1.6rem;
+                margin: 0;
+            }
+            .dynamic-content {
+                padding: 18px 14px;
+            }
+            .top-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            .charts-row {
+                flex-direction: column;
+            }
+        }
+
+        .scroll-table {
+            overflow-x: auto;
+        }
+        .green-badge {
+            background: #e0f2e0;
+            color: #1b5e3f;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- FIXED LEFT SIDEBAR (never reloads) -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>💊 SHAUWQAN</h2>
+            <p>MEDICS · PHARMA</p>
+        </div>
+        <ul class="nav-menu" id="nav-menu">
+            <li class="nav-item" data-view="home"><a href="#"><span class="nav-icon">🏠</span> <span>Home</span></a></li>
+            <li class="nav-item" data-view="category"><a href="#"><span class="nav-icon">📂</span> <span>Category Entry</span></a></li>
+            <li class="nav-item" data-view="brand"><a href="#"><span class="nav-icon">🏷️</span> <span>Brand Entry</span></a></li>
+            <li class="nav-item" data-view="purchase"><a href="#"><span class="nav-icon">📦</span> <span>Purchase Entry</span></a></li>
+            <li class="nav-item" data-view="dispensing"><a href="#"><span class="nav-icon">💊</span> <span>Dispensing</span></a></li>
+            <li class="nav-item" data-view="mainstore"><a href="#"><span class="nav-icon">🏪</span> <span>Main Store</span></a></li>
+            <li class="nav-item" data-view="salesmgmt"><a href="#"><span class="nav-icon">📈</span> <span>Sales Management</span></a></li>
+            <li class="nav-item" data-view="salesorder"><a href="#"><span class="nav-icon">🛒</span> <span>Sales Order</span></a></li>
+            <li class="nav-item" data-view="invoice"><a href="#"><span class="nav-icon">📄</span> <span>Invoice</span></a></li>
+            <li class="nav-item" data-view="expenditure"><a href="#"><span class="nav-icon">💰</span> <span>Expenditure</span></a></li>
+            <li class="nav-item" data-view="report"><a href="#"><span class="nav-icon">📊</span> <span>Report</span></a></li>
+        </ul>
+        <div style="padding: 20px; font-size: 0.7rem; opacity: 0.6; text-align: center;">v2.0 · Secure</div>
+    </div>
+
+    <!-- MAIN PANEL (dynamic content area) -->
+    <div class="main-panel">
+        <div class="top-header">
+            <div class="pharmacy-info">
+                <h3>SHAUWQAN MEDICS [HQ-21819]</h3>
+                <p>📍 TANGA - SEGERA | 📞 +255 774 525 730</p>
+            </div>
+            <div class="user-info">
+                <span>👩‍⚕️ Dr. J. Mwita</span>
+                <span class="badge green-badge">Pharmacist</span>
+            </div>
+        </div>
+        <div id="dynamic-content" class="dynamic-content">
+            <!-- content injected via JS (SPA behavior) -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // ----------------------------- MOCK DATA & STORE (fully offline) -----------------------------
+    let stockItems = [
+        { id: 1, name: "Paracetamol 500mg", category: "Analgesic", brand: "Kamri", quantity: 145, expiryDate: "2026-05-10" },
+        { id: 2, name: "Amoxicillin 250mg", category: "Antibiotic", brand: "MedRx", quantity: 0, expiryDate: "2025-12-01" },
+        { id: 3, name: "Vitamin C 1000mg", category: "Supplement", brand: "NutriLife", quantity: 32, expiryDate: "2027-01-15" },
+        { id: 4, name: "Ibuprofen 400mg", category: "NSAID", brand: "Painex", quantity: 0, expiryDate: "2024-10-20" },  // expired
+        { id: 5, name: "Cetirizine 10mg", category: "Antihistamine", brand: "AllerFree", quantity: 78, expiryDate: "2026-08-22" },
+        { id: 6, name: "Metformin 500mg", category: "Antidiabetic", brand: "GlucoMet", quantity: 12, expiryDate: "2024-09-30" } // expired
+    ];
+
+    let categories = ["Analgesic", "Antibiotic", "Supplement", "NSAID", "Antihistamine", "Antidiabetic"];
+    let brands = ["Kamri", "MedRx", "NutriLife", "Painex", "AllerFree", "GlucoMet"];
+
+    let expenditures = [
+        { id: 1, description: "Electricity Bill", amount: 45000, date: new Date().toISOString().slice(0,10) },
+        { id: 2, description: "Water Bill", amount: 15000, date: new Date().toISOString().slice(0,10) },
+        { id: 3, description: "Staff Lunch", amount: 60000, date: new Date().toISOString().slice(0,10) }
+    ];
+
+    let sales = [
+        { id: 1, invoiceNo: "INV-001", date: new Date().toISOString().slice(0,10), totalAmount: 45000, paymentMethod: "Cash" },
+        { id: 2, invoiceNo: "INV-002", date: new Date().toISOString().slice(0,10), totalAmount: 68000, paymentMethod: "Mpesa" },
+        { id: 3, invoiceNo: "INV-003", date: new Date().toISOString().slice(0,10), totalAmount: 32000, paymentMethod: "Airtel Money" },
+        { id: 4, invoiceNo: "INV-004", date: "2025-03-20", totalAmount: 12000, paymentMethod: "Cash" }
+    ];
+
+    // Helper functions
+    function getTodayExpenses() {
+        const today = new Date().toISOString().slice(0,10);
+        return expenditures.filter(exp => exp.date === today).reduce((sum, e) => sum + e.amount, 0);
+    }
+    function getTodaySales() {
+        const today = new Date().toISOString().slice(0,10);
+        return sales.filter(s => s.date === today).reduce((sum, s) => sum + s.totalAmount, 0);
+    }
+    function getOutOfStockCount() {
+        return stockItems.filter(item => item.quantity <= 0).length;
+    }
+    function getExpiredCount() {
+        const today = new Date();
+        return stockItems.filter(item => new Date(item.expiryDate) < today).length;
+    }
+
+    // get payment distribution (today)
+    function getTodayPaymentStats() {
+        const today = new Date().toISOString().slice(0,10);
+        const todaySales = sales.filter(s => s.date === today);
+        const cash = todaySales.filter(s => s.paymentMethod === "Cash").reduce((a,b)=> a+b.totalAmount,0);
+        const mpesa = todaySales.filter(s => s.paymentMethod === "Mpesa").reduce((a,b)=> a+b.totalAmount,0);
+        const airtel = todaySales.filter(s => s.paymentMethod === "Airtel Money").reduce((a,b)=> a+b.totalAmount,0);
+        return { cash, mpesa, airtel };
+    }
+
+    // ----- VANILLA CHARTS (offline, canvas) -----
+    let barChartCanvas, pieChartCanvas;
+    function drawBarChart() {
+        const canvas = document.getElementById("incomeBarChart");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const stats = getTodayPaymentStats();
+        const values = [stats.cash, stats.mpesa, stats.airtel];
+        const labels = ["Cash", "M-Pesa", "Airtel"];
+        const colors = ["#2e7d32", "#f5b042", "#1e88e5"];
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        canvas.width = w; canvas.height = h;
+        ctx.clearRect(0, 0, w, h);
+        if (values.every(v=>v===0)) {
+            ctx.fillStyle = "#aaa"; ctx.font = "14px sans-serif"; ctx.fillText("No sales today", w/2-60, h/2); return;
+        }
+        const maxVal = Math.max(...values, 1);
+        const barWidth = (w / values.length) * 0.6;
+        const startX = (w / values.length - barWidth) / 2;
+        for (let i=0; i<values.length; i++) {
+            const barHeight = (values[i] / maxVal) * (h - 60);
+            const x = i * (w/values.length) + startX;
+            const y = h - barHeight - 30;
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(x, y, barWidth, barHeight);
+            ctx.fillStyle = "#1e3a2e";
+            ctx.font = "12px sans-serif";
+            ctx.fillText(labels[i], x+barWidth/4, h-12);
+            ctx.fillStyle = "#2c5e2e";
+            ctx.fillText((values[i]/1000).toFixed(0)+"K", x+barWidth/4, y-6);
+        }
+    }
+
+    function drawPieChart() {
+        const canvas = document.getElementById("paymentPieChart");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const stats = getTodayPaymentStats();
+        const data = [stats.cash, stats.mpesa, stats.airtel];
+        const labels = ["Cash", "M-Pesa", "Airtel"];
+        const colors = ["#2e7d32", "#f5b042", "#1e88e5"];
+        const total = data.reduce((a,b)=>a+b,0);
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        canvas.width = w; canvas.height = h;
+        ctx.clearRect(0,0,w,h);
+        if(total===0){
+            ctx.fillStyle="#aaa"; ctx.font="14px sans-serif"; ctx.fillText("No data", w/2-30, h/2); return;
+        }
+        let startAngle = -Math.PI/2;
+        const centerX = w/2, centerY = h/2, radius = Math.min(w,h)*0.35;
+        for(let i=0;i<data.length;i++){
+            const angle = (data[i]/total)*Math.PI*2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, startAngle+angle);
+            ctx.fillStyle = colors[i];
+            ctx.fill();
+            startAngle += angle;
+        }
+        // legend
+        let legendY = h - 40;
+        for(let i=0;i<labels.length;i++){
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(10, legendY + i*20, 12, 12);
+            ctx.fillStyle = "#1a3a2a";
+            ctx.font = "10px sans-serif";
+            ctx.fillText(`${labels[i]}: ${((data[i]/total)*100).toFixed(1)}%`, 28, legendY+ i*20 + 10);
+        }
+    }
+
+    function refreshCharts() { drawBarChart(); drawPieChart(); }
+
+    // ----- RENDER DIFFERENT VIEWS (SPA) -----
+    let currentView = "home";
+    const contentDiv = document.getElementById("dynamic-content");
+
+    function renderHomeView() {
+        const todayExp = getTodayExpenses();
+        const todaySales = getTodaySales();
+        const outOfStock = getOutOfStockCount();
+        const expired = getExpiredCount();
+        return `
+            <div class="cards-grid">
+                <div class="stat-card"><h4>💸 Today Expenses</h4><div class="value">Tsh ${todayExp.toLocaleString()}</div></div>
+                <div class="stat-card"><h4>📊 Today Sales</h4><div class="value">Tsh ${todaySales.toLocaleString()}</div></div>
+                <div class="stat-card"><h4>⚠️ Out of Stock</h4><div class="value">${outOfStock}</div><div class="unit">items</div></div>
+                <div class="stat-card"><h4>⏳ Expired Items</h4><div class="value">${expired}</div><div class="unit">products</div></div>
+            </div>
+            <div class="charts-row">
+                <div class="chart-box"><h3>📊 Today Income (Bar) · TZS</h3><canvas id="incomeBarChart" width="400" height="220" style="width:100%; height:auto; max-height:220px"></canvas></div>
+                <div class="chart-box"><h3>🥧 Payment Statistics (Pie)</h3><canvas id="paymentPieChart" width="400" height="220" style="width:100%; height:auto; max-height:220px"></canvas></div>
+            </div>
+            <div class="form-card"><p style="color:#2e7d32;">✨ Today's summary — real-time from stock & sales. Use left menu to manage pharmacy.</p></div>
+        `;
+    }
+
+    function renderCategoryView() {
+        let catList = categories.map(c => `<li style="margin:6px 0">📁 ${c}</li>`).join('');
+        return `
+            <div class="form-card"><h3>➕ Add New Category</h3><div class="form-group"><label>Category Name</label><input type="text" id="newCategory" placeholder="e.g., Antiviral"></div><button id="addCategoryBtn">Save Category</button></div>
+            <div class="data-table"><h3>📋 Existing Categories</h3><ul id="categoryList" style="margin-top:16px; list-style:none;">${catList}</ul></div>
+        `;
+    }
+    function renderBrandView() {
+        let brandList = brands.map(b => `<li style="margin:6px 0">🏷️ ${b}</li>`).join('');
+        return `<div class="form-card"><h3>➕ Add Brand</h3><div class="form-group"><label>Brand Name</label><input id="newBrand" placeholder="e.g., Novartis"></div><button id="addBrandBtn">Add Brand</button></div>
+        <div class="data-table"><h3>📋 Brands</h3><ul id="brandList" style="list-style:none;">${brandList}</ul></div>`;
+    }
+    function renderPurchaseView() {
+        const catOptions = categories.map(c => `<option>${c}</option>`).join('');
+        const brandOptions = brands.map(b => `<option>${b}</option>`).join('');
+        return `<div class="form-card"><h3>📦 New Purchase (Stock In)</h3>
+            <div class="form-group"><label>Medicine Name</label><input id="pName" placeholder="Product name"></div>
+            <div class="form-group"><label>Category</label><select id="pCategory">${catOptions}</select></div>
+            <div class="form-group"><label>Brand</label><select id="pBrand">${brandOptions}</select></div>
+            <div class="form-group"><label>Quantity</label><input id="pQty" type="number" value="10"></div>
+            <div class="form-group"><label>Expiry Date</label><input id="pExpiry" type="date" value="2027-12-31"></div>
+            <button id="doPurchaseBtn">Add to Stock</button></div>`;
+    }
+    function renderDispensingView() {
+        const stockOptions = stockItems.map(item => `<option value="${item.id}">${item.name} (${item.quantity} left)</option>`).join('');
+        return `<div class="form-card"><h3>💊 Dispense / Sell Medicine</h3>
+            <div class="form-group"><label>Select Medicine</label><select id="dispenseItem">${stockOptions}</select></div>
+            <div class="form-group"><label>Quantity to sell</label><input id="dispenseQty" type="number" value="1"></div>
+            <div class="form-group"><label>Payment Method</label><select id="payMethod"><option>Cash</option><option>Mpesa</option><option>Airtel Money</option></select></div>
+            <button id="dispenseBtn">Complete Sale</button></div>`;
+    }
+    function renderMainStoreView() {
+        let rows = stockItems.map(item => `<tr><td>${item.name}</td><td>${item.category}</td><td>${item.brand}</td><td>${item.quantity}</td><td>${item.expiryDate}</td></tr>`).join('');
+        return `<div class="data-table"><h3>🏪 Main Store Inventory</h3><div class="scroll-table"><table><thead><tr><th>Product</th><th>Category</th><th>Brand</th><th>Qty</th><th>Expiry</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    }
+    function renderSalesManagementView() {
+        let rows = sales.map(s => `<tr><td>${s.invoiceNo}</td><td>${s.date}</td><td>Tsh ${s.totalAmount}</td><td>${s.paymentMethod}</td></tr>`).join('');
+        return `<div class="data-table"><h3>📈 Sales Records</h3><div class="scroll-table"><table><thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Method</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    }
+    function renderSalesOrderView() {
+        return `<div class="form-card"><h3>🛒 Create Sales Order (Quick)</h3><div class="form-group"><label>Customer Name</label><input id="customerName" placeholder="Walk-in Customer"></div><div class="form-group"><label>Medicine ID / Name</label><input id="orderProduct" placeholder="Paracetamol 500mg"></div><div class="form-group"><label>Amount (TZS)</label><input id="orderAmount" type="number" placeholder="Total"></div><div class="form-group"><label>Payment</label><select id="orderMethod"><option>Cash</option><option>Mpesa</option><option>Airtel Money</option></select></div><button id="createOrderBtn">Create Order & Invoice</button><p class="badge" style="margin-top:12px;">⚠️ Demo: adds sale record</p></div>`;
+    }
+    function renderInvoiceView() {
+        let invRows = sales.map(s => `<tr><td>${s.invoiceNo}</td><td>${s.date}</td><td>Tsh ${s.totalAmount}</td><td>${s.paymentMethod}</td></tr>`).join('');
+        return `<div class="data-table"><h3>📄 Invoice History</h3><div class="scroll-table"><table><thead><tr><th>Invoice#</th><th>Date</th><th>Total</th><th>Method</th></tr></thead><tbody>${invRows}</tbody></table></div></div>`;
+    }
+    function renderExpenditureView() {
+        let expRows = expenditures.map(e => `<tr><td>${e.description}</td><td>Tsh ${e.amount}</td><td>${e.date}</td></tr>`).join('');
+        return `<div class="form-card"><h3>➕ Record Expense</h3><div class="form-group"><label>Description</label><input id="expDesc" placeholder="Rent, bills"></div><div class="form-group"><label>Amount (TZS)</label><input id="expAmount" type="number"></div><button id="addExpenseBtn">Add Expense</button></div>
+        <div class="data-table"><h3>💰 Expenditure List</h3><div class="scroll-table"><table><thead><tr><th>Description</th><th>Amount</th><th>Date</th></tr></thead><tbody>${expRows}</tbody></table></div></div>`;
+    }
+    function renderReportView() {
+        const totalStockVal = stockItems.reduce((sum,item)=> sum + (item.quantity*1000),0);
+        const totalExpenses = expenditures.reduce((s,e)=>s+e.amount,0);
+        const totalSalesAmount = sales.reduce((s,sl)=>s+sl.totalAmount,0);
+        return `<div class="cards-grid"><div class="stat-card"><h4>📦 Stock Value (est.)</h4><div class="value">Tsh ${totalStockVal.toLocaleString()}</div></div>
+        <div class="stat-card"><h4>📉 Total Expenses</h4><div class="value">Tsh ${totalExpenses.toLocaleString()}</div></div>
+        <div class="stat-card"><h4>📈 Gross Revenue</h4><div class="value">Tsh ${totalSalesAmount.toLocaleString()}</div></div></div>
+        <div class="form-card"><p><strong>Pharmacy Report</strong> | Active items: ${stockItems.length} | Out of stock: ${getOutOfStockCount()}</p></div>`;
+    }
+
+    // attach dynamic events after render
+    function bindViewEvents(viewName) {
+        if (viewName === "category") {
+            document.getElementById("addCategoryBtn")?.addEventListener("click", () => {
+                const newCat = document.getElementById("newCategory").value.trim();
+                if(newCat && !categories.includes(newCat)) { categories.push(newCat); renderCurrentView(); }
+                else alert("Category exists or empty");
+            });
+        }
+        if (viewName === "brand") {
+            document.getElementById("addBrandBtn")?.addEventListener("click", () => {
+                const newBr = document.getElementById("newBrand").value.trim();
+                if(newBr && !brands.includes(newBr)) { brands.push(newBr); renderCurrentView(); }
+                else alert("Brand exists");
+            });
+        }
+        if (viewName === "purchase") {
+            document.getElementById("doPurchaseBtn")?.addEventListener("click", () => {
+                const name = document.getElementById("pName").value;
+                const cat = document.getElementById("pCategory").value;
+                const brand = document.getElementById("pBrand").value;
+                const qty = parseInt(document.getElementById("pQty").value);
+                const expiry = document.getElementById("pExpiry").value;
+                if(name && qty>0) { stockItems.push({ id: Date.now(), name, category: cat, brand, quantity: qty, expiryDate: expiry }); renderCurrentView(); }
+                else alert("Fill valid details");
+            });
+        }
+        if (viewName === "dispensing") {
+            document.getElementById("dispenseBtn")?.addEventListener("click", () => {
+                const itemId = parseInt(document.getElementById("dispenseItem").value);
+                const qtySold = parseInt(document.getElementById("dispenseQty").value);
+                const method = document.getElementById("payMethod").value;
+                const item = stockItems.find(i=>i.id===itemId);
+                if(item && item.quantity >= qtySold && qtySold>0){
+                    item.quantity -= qtySold;
+                    const amount = qtySold * 1500; // mock price
+                    sales.push({ id: Date.now(), invoiceNo: `INV-${Date.now()}`, date: new Date().toISOString().slice(0,10), totalAmount: amount, paymentMethod: method });
+                    renderCurrentView();
+                } else alert("Insufficient stock or invalid");
+            });
+        }
+        if (viewName === "salesorder") {
+            document.getElementById("createOrderBtn")?.addEventListener("click", ()=>{
+                const amount = parseInt(document.getElementById("orderAmount").value);
+                const method = document.getElementById("orderMethod").value;
+                if(amount>0){
+                    sales.push({ id: Date.now(), invoiceNo: `ORD-${Date.now()}`, date: new Date().toISOString().slice(0,10), totalAmount: amount, paymentMethod: method });
+                    renderCurrentView();
+                } else alert("Enter valid amount");
+            });
+        }
+        if (viewName === "expenditure") {
+            document.getElementById("addExpenseBtn")?.addEventListener("click", ()=>{
+                const desc = document.getElementById("expDesc").value;
+                const amt = parseInt(document.getElementById("expAmount").value);
+                if(desc && amt>0){
+                    expenditures.push({ id: Date.now(), description: desc, amount: amt, date: new Date().toISOString().slice(0,10) });
+                    renderCurrentView();
+                } else alert("Fill description & amount");
+            });
+        }
+        if(viewName === "home") { setTimeout(()=>{ refreshCharts(); window.addEventListener('resize', ()=>{ if(currentView==="home") refreshCharts(); }); }, 50); }
+    }
+
+    function renderCurrentView() {
+        let html = "";
+        switch(currentView) {
+            case "home": html = renderHomeView(); break;
+            case "category": html = renderCategoryView(); break;
+            case "brand": html = renderBrandView(); break;
+            case "purchase": html = renderPurchaseView(); break;
+            case "dispensing": html = renderDispensingView(); break;
+            case "mainstore": html = renderMainStoreView(); break;
+            case "salesmgmt": html = renderSalesManagementView(); break;
+            case "salesorder": html = renderSalesOrderView(); break;
+            case "invoice": html = renderInvoiceView(); break;
+            case "expenditure": html = renderExpenditureView(); break;
+            case "report": html = renderReportView(); break;
+            default: html = "<div>Loading...</div>";
+        }
+        contentDiv.innerHTML = html;
+        bindViewEvents(currentView);
+        if(currentView === "home") { setTimeout(()=>{ drawBarChart(); drawPieChart(); }, 40); }
+        // update active menu
+        document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));
+        document.querySelector(`.nav-item[data-view="${currentView}"]`)?.classList.add("active");
+    }
+
+    function setView(viewName) {
+        currentView = viewName;
+        renderCurrentView();
+    }
+
+    // menu click handlers (fixed sidebar, never reload)
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const view = item.getAttribute("data-view");
+            if(view) setView(view);
+        });
+    });
+
+    // initial load
+    setView("home");
+</script>
+</body>
+</html>
